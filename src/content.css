@@ -6,6 +6,7 @@
 }
 
 .shinepet-wrapper {
+  position: relative;
   width: 100%;
   height: 100%;
   display: flex;
@@ -56,6 +57,74 @@
   50% { transform: translateY(0) rotate(0) scale(1); }
   75% { transform: translateY(-2px) rotate(10deg) scale(1.06); }
   100% { transform: translateY(0) rotate(0) scale(1); }
+}
+
+/* 天气徽标（悬浮在宠物上方） */
+.shinepet-weather {
+  position: absolute;
+  top: -12px;
+  right: -8px;
+  padding: 2px 6px;
+  font-size: 12px;
+  line-height: 16px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateY(-6px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* 右键菜单 */
+.shinepet-context-menu {
+  position: fixed;
+  z-index: 2147483647;
+  display: none;
+  min-width: 140px;
+  padding: 6px;
+  background: #1f2937;
+  color: #e5e7eb;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  align-items: stretch;
+  flex-direction: column;
+  gap: 4px;
+}
+.shinepet-menu-item {
+  appearance: none;
+  background: transparent;
+  color: inherit;
+  border: none;
+  text-align: left;
+  font: 500 13px/1.6 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.shinepet-menu-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+/* Toast 提示 */
+.shinepet-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 80px;
+  transform: translateX(-50%) translateY(20px);
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  font-size: 12px;
+  border-radius: 8px;
+  opacity: 0;
+  transition: transform .2s ease, opacity .2s ease;
+  z-index: 2147483647;
+}
+.shinepet-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 

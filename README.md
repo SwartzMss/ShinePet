@@ -38,7 +38,7 @@
 - 拖动：按住宠物即可拖拽，靠近屏幕边缘会吸附停靠
 - 单击：切换到下一个轻量动作（如挥手）
 - 双击：触发跳舞等高能量动作（带可选音效）
-- 长按：打开快捷菜单（静音、缩放、换肤、设置）
+- 右键：打开快捷菜单（天气开关、立即刷新、自动定位、设置城市）
 - 休息：拖到页面底部停留可进入“睡觉”状态
 - 持久化：位置、大小、音量等会在 `chrome.storage.sync` 中保存
 
@@ -49,8 +49,9 @@
 - `storage`：保存用户设置与宠物状态
 - `scripting`：向页面注入悬浮层（内容脚本/脚本 API）
 - `activeTab`（可选）：在当前活动页快速启用/禁用
-- `contextMenus`（可选）：右键菜单操作
-- `alarms`（可选）：定时触发状态变化（如提醒喝水）
+- `geolocation`（仅浏览器提示授权时使用）：获取当前位置用于天气
+- `contextMenus`（不使用扩展级 API，改为页面内自定义右键菜单）
+- `alarms`（未使用）：当前以页面内 `setInterval` 实现 2 小时刷新
 
 本扩展不收集个人敏感信息，所有数据保存在本机或同步到用户浏览器账户。
 
@@ -59,6 +60,7 @@
 - 皮肤与素材：
   - 路径结构示例：`/assets/pets/<pet-id>/sprite.png`、`/assets/pets/<pet-id>/config.json`
   - `config.json` 中定义动作名称、帧率、帧序列、碰撞盒、音效绑定等
+  - 简单皮肤切换：当前实现将优先加载 `assets/pikachu.svg`，若不存在则回退到 `assets/pet.svg`
 - 行为配置：
   - 通过 `behaviors.json`（或等价模块）声明可用动作与触发条件
 - 设置面板：
@@ -70,6 +72,14 @@
 - TypeScript + 轻量渲染（Canvas/CSS Sprite）
 - 构建：Vite 或等效工具产出 `dist`
 - 质量保障：ESLint、Prettier
+
+### 天气实现说明
+
+- 天气来源：Open‑Meteo `https://api.open-meteo.com/` 与地理编码 `https://geocoding-api.open-meteo.com/`
+- 刷新频率：每 2 小时自动刷新；可在右键菜单中“立即刷新”
+- 定位优先级：手动设置城市 > 浏览器定位 > 不显示
+- 数据缓存：`chrome.storage.sync` 持久化最近一次天气与时间戳
+- 徽标显示：在宠物右上角展示表情 + 温度（如 `☀️ 26°C`）
 
 最终选型将以实现阶段的约束与性能为准，README 会同步更新。
 
