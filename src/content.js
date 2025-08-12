@@ -216,7 +216,9 @@
   }
 
   async function restoreSettingsAndWeather() {
-    const [settings, weather] = await chromeStorageGet([SETTINGS_STORAGE_KEY, WEATHER_STORAGE_KEY]);
+    const res = await chromeStorageGet([SETTINGS_STORAGE_KEY, WEATHER_STORAGE_KEY]);
+    const settings = res[SETTINGS_STORAGE_KEY];
+    const weather = res[WEATHER_STORAGE_KEY];
     if (settings && typeof settings.weatherEnabled === 'boolean') {
       weatherEnabled = settings.weatherEnabled;
     }
