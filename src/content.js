@@ -218,8 +218,8 @@
 
   async function restoreSettingsAndWeather() {
     const res = await chromeStorageGet([SETTINGS_STORAGE_KEY, WEATHER_STORAGE_KEY]);
-    const settings = res[SETTINGS_STORAGE_KEY];
-    const weather = res[WEATHER_STORAGE_KEY];
+    const settings = res && res[SETTINGS_STORAGE_KEY] ? res[SETTINGS_STORAGE_KEY] : {};
+    const weather = res && res[WEATHER_STORAGE_KEY] ? res[WEATHER_STORAGE_KEY] : null;
     if (settings && typeof settings.weatherEnabled === 'boolean') {
       weatherEnabled = settings.weatherEnabled;
     }
@@ -233,10 +233,14 @@
 
   function ensureWeatherFreshness() {
     chromeStorageGet([WEATHER_STORAGE_KEY]).then((res) => {
-      const cache = res && res[WEATHER_STORAGE_KEY];
-      const now = Date.now();
-      if (!cache || now - (cache.timestamp || 0) > 2 * 60 * 60 * 1000) {
-        refreshWeather();
+      try {
+        const cache = res && res[WEATHER_STORAGE_KEY];
+        const now = Date.now();
+        if (!cache || now - (cache.timestamp || 0) > 2 * 60 * 60 * 1000) {
+          refreshWeather();
+        }
+      } catch (_) {
+        // 忽略
       }
     });
   }
@@ -244,7 +248,8 @@
   async function refreshWeather(force = false) {
     if (!weatherEnabled && !force) return;
     // 1) 拿到坐标优先级：设置的坐标 > 定位 > 失败
-    const settings = (await chromeStorageGet([SETTINGS_STORAGE_KEY]))[SETTINGS_STORAGE_KEY] || {};
+    const settingsRes = await chromeStorageGet([SETTINGS_STORAGE_KEY]);
+    const settings = (settingsRes && settingsRes[SETTINGS_STORAGE_KEY]) || {};
     let coords = settings.coords;
     if (!coords) {
       coords = await getGeolocation();
@@ -268,7 +273,7 @@
     weatherBadge.style.display = '';
   }
 
-  function formatWeatherText(data) {
+  function formatWeatherText(data = {}) {
     // 期望数据：{ temperature, weatherCode, isDay, windSpeed }
     const emoji = emojiFromWeatherCode(data.weatherCode, data.isDay);
     const temp = typeof data.temperature === 'number' ? `${Math.round(data.temperature)}°C` : '';
@@ -367,7 +372,8 @@
     });
   }
   async function persistSettings(partial = {}) {
-    const current = (await chromeStorageGet([SETTINGS_STORAGE_KEY]))[SETTINGS_STORAGE_KEY] || {};
+    const currentRes = await chromeStorageGet([SETTINGS_STORAGE_KEY]);
+    const current = (currentRes && currentRes[SETTINGS_STORAGE_KEY]) || {};
     const next = { ...current, weatherEnabled, ...partial };
     await chromeStorageSet({ [SETTINGS_STORAGE_KEY]: next });
   }
