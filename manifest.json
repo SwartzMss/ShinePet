@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "ShinePet",
+  "version": "0.1.0",
+  "description": "可拖拽、会跳舞的浏览器电子宠物",
+  "permissions": [
+    "storage"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content.js"],
+      "css": ["src/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
+
+
