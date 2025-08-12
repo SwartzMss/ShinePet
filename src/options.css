@@ -1,0 +1,66 @@
+:root {
+  color-scheme: light dark;
+}
+body {
+  margin: 0;
+  font: 14px/1.6 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  background: canvas;
+  color: canvastext;
+}
+.container {
+  max-width: 720px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+h1 {
+  font-size: 20px;
+  margin: 0 0 16px;
+}
+h2 {
+  font-size: 16px;
+  margin: 0 0 12px;
+}
+.card {
+  background: color-mix(in oklab, canvas 92%, transparent);
+  border: 1px solid color-mix(in oklab, canvastext 15%, transparent);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0;
+}
+input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in oklab, canvastext 15%, transparent);
+  background: canvas;
+  color: canvastext;
+}
+button {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in oklab, canvastext 15%, transparent);
+  background: color-mix(in oklab, canvas 92%, transparent);
+  color: canvastext;
+  cursor: pointer;
+}
+button:hover {
+  background: color-mix(in oklab, canvas 85%, transparent);
+}
+.hint {
+  opacity: .75;
+  margin: 8px 0 0;
+}
+.footer {
+  opacity: .6;
+  font-size: 12px;
+  text-align: center;
+}
+
+

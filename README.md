@@ -73,13 +73,14 @@
 - 构建：Vite 或等效工具产出 `dist`
 - 质量保障：ESLint、Prettier
 
-### 天气实现说明
+### 天气与皮肤说明
 
 - 天气来源：Open‑Meteo `https://api.open-meteo.com/` 与地理编码 `https://geocoding-api.open-meteo.com/`
 - 刷新频率：每 2 小时自动刷新；可在右键菜单中“立即刷新”
 - 定位优先级：手动设置城市 > 浏览器定位 > 不显示
 - 数据缓存：`chrome.storage.sync` 持久化最近一次天气与时间戳
 - 徽标显示：在宠物右上角展示表情 + 温度（如 `☀️ 26°C`）
+- 皮肤：默认优先加载 `assets/mc_person.svg` 像素风；如不存在则回退到 `assets/pet.svg`
 
 最终选型将以实现阶段的约束与性能为准，README 会同步更新。
 

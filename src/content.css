@@ -76,6 +76,29 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
+/* 设置齿轮按钮 */
+.shinepet-gear {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(31,41,55,0.9);
+  color: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+}
+.shinepet-gear:hover {
+  background: rgba(55,65,81,0.95);
+}
+
 /* 右键菜单 */
 .shinepet-context-menu {
   position: fixed;

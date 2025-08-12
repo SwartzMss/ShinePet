@@ -32,10 +32,10 @@
   petImg.className = 'shinepet-img';
   petImg.alt = 'ShinePet';
   petImg.draggable = false;
-  // 优先尝试 pikachu 皮肤，不存在则回退到默认 pet.svg
-  const pikachuUrl = chrome.runtime.getURL('assets/pikachu.svg');
+  // 优先尝试像素人皮肤，不存在则回退到默认 pet.svg
+  const primarySkinUrl = chrome.runtime.getURL('assets/mc_person.svg');
   const fallbackUrl = chrome.runtime.getURL('assets/pet.svg');
-  petImg.src = pikachuUrl;
+  petImg.src = primarySkinUrl;
   petImg.onerror = () => {
     if (petImg.src !== fallbackUrl) {
       petImg.src = fallbackUrl;
@@ -96,14 +96,27 @@
   weatherBadge.style.display = 'none';
   petWrapper.appendChild(weatherBadge);
 
-  // 右键菜单
-  const contextMenu = createContextMenu();
-  document.body.appendChild(contextMenu);
+  // 设置齿轮按钮（打开扩展选项页）
+  const gear = document.createElement('button');
+  gear.className = 'shinepet-gear';
+  gear.title = '打开 ShinePet 设置';
+  gear.textContent = '⚙';
+  gear.addEventListener('click', () => {
+    try {
+      chrome.runtime.openOptionsPage?.();
+    } catch (_) {
+      // 忽略
+    }
+  });
+  petWrapper.appendChild(gear);
+
+  // 右键：直接打开选项页
   container.addEventListener('contextmenu', (e) => {
     e.preventDefault();
-    openContextMenuAt(e.clientX, e.clientY);
+    try {
+      chrome.runtime.openOptionsPage?.();
+    } catch (_) {}
   });
-  window.addEventListener('click', () => hideContextMenu());
 
   // 初始化：恢复设置与天气缓存
   restoreSettingsAndWeather().then(() => {
@@ -188,76 +201,7 @@
     }
   }
 
-  // ====== 天气与菜单实现 ======
-  function createContextMenu() {
-    const menu = document.createElement('div');
-    menu.className = 'shinepet-context-menu';
-    menu.style.display = 'none';
-
-    const btnToggle = document.createElement('button');
-    btnToggle.className = 'shinepet-menu-item';
-    btnToggle.textContent = '显示/隐藏天气';
-    btnToggle.addEventListener('click', () => {
-      weatherEnabled = !weatherEnabled;
-      weatherBadge.style.display = weatherEnabled ? '' : 'none';
-      persistSettings();
-      hideContextMenu();
-      if (weatherEnabled) ensureWeatherFreshness();
-    });
-
-    const btnRefresh = document.createElement('button');
-    btnRefresh.className = 'shinepet-menu-item';
-    btnRefresh.textContent = '立即刷新天气';
-    btnRefresh.addEventListener('click', () => {
-      hideContextMenu();
-      refreshWeather(true);
-    });
-
-    const btnGeo = document.createElement('button');
-    btnGeo.className = 'shinepet-menu-item';
-    btnGeo.textContent = '使用自动定位';
-    btnGeo.addEventListener('click', async () => {
-      hideContextMenu();
-      const coords = await getGeolocation();
-      if (coords) {
-        await persistSettings({ coords });
-        await refreshWeather(true);
-      } else {
-        showToast('定位失败，可尝试手动输入城市');
-      }
-    });
-
-    const btnCity = document.createElement('button');
-    btnCity.className = 'shinepet-menu-item';
-    btnCity.textContent = '设置城市…';
-    btnCity.addEventListener('click', async () => {
-      hideContextMenu();
-      const name = prompt('输入城市名（例如：北京、上海、Shenzhen 等）');
-      if (!name) return;
-      const coords = await geocodeCity(name);
-      if (coords) {
-        await persistSettings({ coords, cityName: name });
-        await refreshWeather(true);
-      } else {
-        showToast('未找到该城市');
-      }
-    });
-
-    menu.appendChild(btnToggle);
-    menu.appendChild(btnRefresh);
-    menu.appendChild(btnGeo);
-    menu.appendChild(btnCity);
-    return menu;
-  }
-
-  function openContextMenuAt(x, y) {
-    contextMenu.style.left = `${x}px`;
-    contextMenu.style.top = `${y}px`;
-    contextMenu.style.display = 'flex';
-  }
-  function hideContextMenu() {
-    contextMenu.style.display = 'none';
-  }
+  // ====== 天气实现 ======
 
   function showToast(text) {
     const toast = document.createElement('div');

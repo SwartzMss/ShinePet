@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ShinePet 设置</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>ShinePet 设置</h1>
+
+      <section class="card">
+        <h2>天气</h2>
+        <label class="row">
+          <input type="checkbox" id="weatherEnabled" />
+          <span>启用天气徽标</span>
+        </label>
+
+        <div class="row">
+          <button id="useGeolocation">使用自动定位</button>
+        </div>
+
+        <div class="row">
+          <input id="cityName" type="text" placeholder="城市名（如 北京 / Shanghai）" />
+          <button id="setCity">设置城市</button>
+        </div>
+
+        <div class="row">
+          <button id="refreshNow">立即刷新天气</button>
+        </div>
+
+        <p class="hint">说明：优先使用手动设置的城市；否则尝试浏览器定位。</p>
+      </section>
+
+      <section class="card">
+        <h2>皮肤</h2>
+        <p>当前将优先加载 <code>assets/pikachu.svg</code>；若不存在则回退到 <code>assets/pet.svg</code>。后续将提供更多皮肤与选择器。</p>
+      </section>
+
+      <footer class="footer">ShinePet v0.1 设置页</footer>
+    </main>
+
+    <script src="options.js"></script>
+  </body>
+  </html>
+
+
