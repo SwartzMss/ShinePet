@@ -27,11 +27,9 @@
    ```bash
    git clone https://github.com/<your-org-or-name>/ShinePet.git
    ```
-2. 构建（待实现）：
-   - 计划支持一键构建生成 `dist` 目录
-3. 在浏览器中打开扩展页面：
+2. 在浏览器中打开扩展页面：
    - Chrome/Edge：地址栏输入 `chrome://extensions/` 或 `edge://extensions/`
-   - 打开“开发者模式” → “加载已解压的扩展程序” → 选择项目的 `dist` 目录
+   - 打开“开发者模式” → “加载已解压的扩展程序” → 选择项目根目录（含 `manifest.json`）
 
 发布版将提供商店地址与一键安装方式。
 
@@ -75,25 +73,26 @@
 
 最终选型将以实现阶段的约束与性能为准，README 会同步更新。
 
-## 目录结构（规划）
+## 目录结构
 
 ```
 ShinePet/
-  ├─ public/                  # 静态资源与 MV3 清单（manifest.json）
-  ├─ src/                     # 源码（内容脚本、UI、逻辑）
-  ├─ assets/                  # 宠物素材与配置
-  ├─ dist/                    # 构建产物（加载此目录）
-  ├─ scripts/                 # 构建与工具脚本
+  ├─ assets/                  # 宠物素材与配置（pet.svg 等）
+  ├─ src/                     # 源码（内容脚本、样式等）
+  │   ├─ content.js
+  │   └─ content.css
+  ├─ manifest.json            # MV3 清单
   ├─ README.md
   └─ LICENSE
 ```
 
 ## 开发指南（将随实现补充）
 
-1. 安装依赖：`pnpm i` 或 `npm i`（以最终工具链为准）
-2. 开发调试：`pnpm dev` 生成 `dist` 并热更新
-3. 构建发布：`pnpm build` 产出 `dist`
-4. 在浏览器扩展页面加载 `dist` 进行调试
+当前阶段无需构建，直接在浏览器扩展页面加载项目根目录进行调试。后续将引入工具链（如 Vite + TS）并更新命令：
+
+1. 直接加载根目录（包含 `manifest.json`）调试内容脚本效果
+2. 修改 `src/content.js` 与 `src/content.css` 可立即生效（刷新页面/扩展）
+3. 引入构建后将提供 `dev`/`build` 命令与更完善的目录结构
 
 ## 路线图
 
