@@ -47,17 +47,11 @@
   container.appendChild(petWrapper);
   document.documentElement.appendChild(container);
 
-  // ===== 足球小游戏（Alt+S 打开/关闭） =====
+  // ===== 足球小游戏 =====
   let soccerOverlay = null;
   let soccerCanvas = null;
   let soccerCtx = null;
   let soccerState = null;
-  window.addEventListener('keydown', (e) => {
-    if (e.altKey && (e.key === 's' || e.key === 'S')) {
-      e.preventDefault();
-      toggleSoccer();
-    }
-  });
 
   // 从存储恢复位置
   tryRestorePosition(container);
@@ -109,13 +103,14 @@
   weatherBadge.style.display = 'none';
   petWrapper.appendChild(weatherBadge);
 
-  // 右键：直接打开选项页
+  // 右键：自定义菜单（足球游戏 / 打开设置）
+  const contextMenu = createContextMenu();
+  document.body.appendChild(contextMenu);
   container.addEventListener('contextmenu', (e) => {
     e.preventDefault();
-    try {
-      chrome.runtime.openOptionsPage?.();
-    } catch (_) {}
+    openContextMenuAt(e.clientX, e.clientY);
   });
+  window.addEventListener('click', () => hideContextMenu());
 
   // 初始化：恢复设置与天气缓存
   restoreSettingsAndWeather().then(() => {
@@ -377,10 +372,53 @@
   }
 
   // ====== 足球小游戏实现 ======
+  function createContextMenu() {
+    const menu = document.createElement('div');
+    menu.className = 'shinepet-context-menu';
+    menu.style.display = 'none';
+
+    const btnSoccer = document.createElement('button');
+    btnSoccer.className = 'shinepet-menu-item';
+    btnSoccer.textContent = '开启足球游戏';
+    btnSoccer.addEventListener('click', () => {
+      hideContextMenu();
+      toggleSoccer();
+      updateSoccerBtn();
+    });
+
+    const btnOptions = document.createElement('button');
+    btnOptions.className = 'shinepet-menu-item';
+    btnOptions.textContent = '打开设置';
+    btnOptions.addEventListener('click', () => {
+      hideContextMenu();
+      try { chrome.runtime.openOptionsPage?.(); } catch (_) {}
+    });
+
+    menu.appendChild(btnSoccer);
+    menu.appendChild(btnOptions);
+
+    function updateSoccerBtn() {
+      const active = !!(soccerOverlay && soccerOverlay.classList.contains('active'));
+      btnSoccer.textContent = active ? '关闭足球游戏' : '开启足球游戏';
+    }
+    menu.updateSoccerBtn = updateSoccerBtn;
+    return menu;
+  }
+
+  function openContextMenuAt(x, y) {
+    contextMenu.style.left = `${x}px`;
+    contextMenu.style.top = `${y}px`;
+    contextMenu.style.display = 'flex';
+    contextMenu.updateSoccerBtn?.();
+  }
+  function hideContextMenu() {
+    contextMenu.style.display = 'none';
+  }
   function toggleSoccer() {
     if (!soccerOverlay) initSoccer();
     const active = soccerOverlay.classList.toggle('active');
     if (active) resetSoccer();
+    contextMenu.updateSoccerBtn?.();
   }
 
   function initSoccer() {
