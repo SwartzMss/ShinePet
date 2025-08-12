@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ShinePet",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "可拖拽、会跳舞的浏览器电子宠物",
   "permissions": [
     "storage"

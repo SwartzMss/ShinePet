@@ -7,7 +7,7 @@
 */
 
 (function initShinePet() {
-  try { console.debug('[ShinePet] content v0.1.2 loaded'); } catch (_) {}
+  try { console.debug('[ShinePet] content v0.2.0 loaded'); } catch (_) {}
   if (document.getElementById('shinepet-container')) return;
 
   const container = document.createElement('div');
