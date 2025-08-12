@@ -97,20 +97,6 @@
   weatherBadge.style.display = 'none';
   petWrapper.appendChild(weatherBadge);
 
-  // 设置齿轮按钮（打开扩展选项页）
-  const gear = document.createElement('button');
-  gear.className = 'shinepet-gear';
-  gear.title = '打开 ShinePet 设置';
-  gear.textContent = '⚙';
-  gear.addEventListener('click', () => {
-    try {
-      chrome.runtime.openOptionsPage?.();
-    } catch (_) {
-      // 忽略
-    }
-  });
-  petWrapper.appendChild(gear);
-
   // 右键：直接打开选项页
   container.addEventListener('contextmenu', (e) => {
     e.preventDefault();

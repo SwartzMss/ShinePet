@@ -8,13 +8,12 @@
   const cityNameEl = $('cityName');
   const setCityBtn = $('setCity');
   const refreshNowBtn = $('refreshNow');
+  const saveSettingsBtn = $('saveSettings');
 
   restore();
 
   weatherEnabledEl.addEventListener('change', async () => {
-    const cur = await getSettings();
-    const next = { ...cur, weatherEnabled: weatherEnabledEl.checked };
-    await setSettings(next);
+    // 暂存 UI 状态，等待用户点击“保存设置”再写入
   });
 
   useGeolocationBtn.addEventListener('click', async () => {
@@ -54,6 +53,14 @@
     } else {
       alert('刷新失败');
     }
+  });
+
+  // 手动保存设置
+  saveSettingsBtn.addEventListener('click', async () => {
+    const cur = await getSettings();
+    const next = { ...cur, weatherEnabled: Boolean(weatherEnabledEl.checked) };
+    await setSettings(next);
+    alert('已保存设置');
   });
 
   async function restore() {

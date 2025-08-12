@@ -53,6 +53,14 @@ button {
 button:hover {
   background: color-mix(in oklab, canvas 85%, transparent);
 }
+.primary {
+  background: color-mix(in oklab, #3b82f6 75%, canvas 25%);
+  color: white;
+  border-color: color-mix(in oklab, #3b82f6 75%, canvastext 25%);
+}
+.primary:hover {
+  background: color-mix(in oklab, #2563eb 75%, canvas 25%);
+}
 .hint {
   opacity: .75;
   margin: 8px 0 0;
