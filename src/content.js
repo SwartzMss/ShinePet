@@ -96,6 +96,8 @@
   // 动画切换函数
   let currentWaveFrame = 0;
   let waveFrameTimer = null;
+  // 旋转动画控制
+  let spinStopTimer = null;
   
   function switchAnimation(animationType) {
     const animationData = PET_ANIMATIONS[animationType];
@@ -145,6 +147,71 @@
       waveFrameTimer = null;
     }
   }
+
+  // ===== 旋转（转圈圈）效果 =====
+  // 动态注入所需样式，避免依赖外部 CSS
+  (function ensureSpinStyle() {
+    const id = 'shinepet-spin-style';
+    if (document.getElementById(id)) return;
+    const styleEl = document.createElement('style');
+    styleEl.id = id;
+    styleEl.textContent = `
+@keyframes shinepet-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.shinepet-rotate { animation: shinepet-rotate 1.2s linear infinite; transform-origin: 50% 60%; display: inline-block; }
+.shinepet-rotate-once { animation: shinepet-rotate 1.2s linear 1; transform-origin: 50% 60%; display: inline-block; }
+.shinepet-rotate-once-rev { animation: shinepet-rotate 1.2s linear 1 reverse; transform-origin: 50% 60%; display: inline-block; }
+`;
+    document.head.appendChild(styleEl);
+  })();
+
+  function startSpin(durationMs = 2000) {
+    try {
+      // 若已有定时器，先清理，保证持续时长以最新为准
+      if (spinStopTimer) {
+        clearTimeout(spinStopTimer);
+        spinStopTimer = null;
+      }
+      petImg.classList.add('shinepet-rotate');
+      if (durationMs > 0) {
+        spinStopTimer = setTimeout(() => {
+          stopSpin();
+          spinStopTimer = null;
+        }, durationMs);
+      }
+    } catch (_) {}
+  }
+
+  function stopSpin() {
+    petImg.classList.remove('shinepet-rotate');
+  }
+
+  function spinOnce(durationMs = 1200, direction = 'random') {
+    try {
+      // 移除可能存在的无限旋转类
+      petImg.classList.remove('shinepet-rotate');
+      petImg.classList.remove('shinepet-rotate-once');
+      petImg.classList.remove('shinepet-rotate-once-rev');
+      // 设置本次旋转时长
+      if (durationMs && durationMs > 0) {
+        petImg.style.animationDuration = `${durationMs}ms`;
+      } else {
+        petImg.style.animationDuration = '';
+      }
+      // 随机或指定方向
+      let useReverse = false;
+      if (direction === 'reverse') useReverse = true;
+      else if (direction === 'normal') useReverse = false;
+      else useReverse = Math.random() < 0.5; // random
+
+      petImg.classList.add(useReverse ? 'shinepet-rotate-once-rev' : 'shinepet-rotate-once');
+      const onEnd = () => {
+        petImg.classList.remove('shinepet-rotate-once');
+        petImg.classList.remove('shinepet-rotate-once-rev');
+        petImg.style.animationDuration = '';
+      };
+      petImg.addEventListener('animationend', onEnd, { once: true });
+    } catch (_) {}
+  }
   petWrapper.appendChild(petImg);
 
   // 将容器添加到页面
@@ -185,6 +252,8 @@
   setTimeout(monitorContainer, 100);
   setTimeout(monitorContainer, 1000);
   setTimeout(monitorContainer, 3000);
+
+  // 默认不再自动旋转，避免刷新页面时总是转圈
 
   // 从存储恢复位置
   tryRestorePosition(container);
@@ -359,39 +428,43 @@
   container.addEventListener('click', (e) => {
     e.stopPropagation();
     
-    // 检查是否刚刚完成拖动，如果是则忽略点击
+    // 刚拖完忽略点击
     if (dragChecker.hasDragged()) {
       console.log('[ShinePet] Ignoring click after drag');
       return;
     }
-    
-    // 如果正在跳舞，忽略单击
+    // 跳舞中忽略点击
     if (danceTimer) return;
     
     console.log('[ShinePet] Processing click event');
     
-    // 清除可能存在的定时器
+    // 清理走路定时器
     if (walkTimer) {
       clearTimeout(walkTimer);
       walkTimer = null;
     }
-    
-    // 停止挥手动画
+    // 停止可能存在的挥手序列
     stopWaveAnimation();
     
-    // 简化逻辑：只在静止和挥手之间切换
-    if (currentAnimationIndex === 0) {
-      // 当前是静止状态，切换到挥手
-      currentAnimationIndex = 1;
+    // 随机：50% 挥手，50% 转圈圈（1 圈）
+    if (Math.random() < 0.5) {
+      // 挥手分支：进入挥手并在约 2s 后自动回到静止
       petWrapper.classList.remove('shinepet-idle', 'shinepet-walk', 'shinepet-dance');
       petWrapper.classList.add('shinepet-wave');
       switchAnimation('wave');
+      setTimeout(() => {
+        stopWaveAnimation();
+        petWrapper.classList.remove('shinepet-wave');
+        petWrapper.classList.add('shinepet-idle');
+        switchAnimation('idle');
+        currentAnimationIndex = 0;
+      }, 2000);
     } else {
-      // 当前是挥手状态，回到静止
-      currentAnimationIndex = 0;
+      // 转圈圈分支：保持静止外观，仅图片转一圈
       petWrapper.classList.remove('shinepet-wave', 'shinepet-walk', 'shinepet-dance');
       petWrapper.classList.add('shinepet-idle');
-      switchAnimation('idle');
+      spinOnce(1200);
+      currentAnimationIndex = 0;
     }
   }, true);
 
