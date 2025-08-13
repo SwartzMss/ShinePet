@@ -4,8 +4,16 @@
   "version": "0.2.0",
   "description": "可拖拽、会跳舞的浏览器电子宠物",
   "permissions": [
-    "storage"
+    "storage",
+    "tabs",
+    "activeTab"
   ],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "action": {
+    "default_title": "ShinePet - 点击切换显示/隐藏"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
@@ -22,5 +30,3 @@
   ],
   "options_page": "src/options.html"
 }
-
-

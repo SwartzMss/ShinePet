@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" shape-rendering="crispEdges">
+  <!-- Minecraft 风格像素人 - 挥手状态（第二帧：左手抬起） -->
+  <defs>
+    <style>
+      .skin { fill: #d7b48a; }
+      .hair { fill: #3b2f2f; }
+      .shirt { fill: #3b82f6; }
+      .pants { fill: #374151; }
+      .eye { fill: #111827; }
+      .white { fill: #ffffff; }
+    </style>
+  </defs>
+
+  <!-- 头部 32x32 区域 -->
+  <rect x="32" y="4" width="32" height="32" class="skin"/>
+  <!-- 头发上沿 -->
+  <rect x="32" y="4" width="32" height="8" class="hair"/>
+  <!-- 刘海 -->
+  <rect x="32" y="12" width="10" height="6" class="hair"/>
+  <rect x="54" y="12" width="10" height="6" class="hair"/>
+  <!-- 眼白 -->
+  <rect x="42" y="20" width="6" height="4" class="white"/>
+  <rect x="58" y="20" width="6" height="4" class="white"/>
+  <!-- 瞳孔 - 开心的眼神 -->
+  <rect x="44" y="22" width="4" height="2" class="eye"/>
+  <rect x="60" y="22" width="4" height="2" class="eye"/>
+
+  <!-- 身体 40x32 -->
+  <rect x="28" y="36" width="40" height="28" class="shirt"/>
+  <!-- 裤子 40x20 -->
+  <rect x="28" y="64" width="40" height="18" class="pants"/>
+
+  <!-- 左手臂 - 抬起挥手 -->
+  <rect x="16" y="28" width="10" height="26" class="shirt"/>
+  <rect x="16" y="52" width="10" height="6" class="skin"/>
+  
+  <!-- 右手臂 - 自然位置 -->
+  <rect x="68" y="38" width="10" height="26" class="shirt"/>
+  <rect x="68" y="62" width="10" height="6" class="skin"/>
+
+  <!-- 腿部 分割线 -->
+  <rect x="46" y="64" width="4" height="18" fill="#111827" opacity=".25"/>
+
+  <!-- 简单的像素阴影效果 -->
+  <rect x="28" y="36" width="40" height="4" fill="#1f4fb3" opacity=".25"/>
+  <rect x="28" y="78" width="40" height="4" fill="#000" opacity=".2"/>
+</svg>

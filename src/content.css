@@ -1,9 +1,20 @@
 /* ShinePet 样式与动画 */
 
+.shinepet-main-container {
+  box-sizing: border-box !important;
+  width: 96px !important;
+  height: 96px !important;
+  cursor: grab !important;
+  user-select: none !important;
+  touch-action: none !important;
+  pointer-events: auto !important;
+}
+
 #shinepet-container {
-  box-sizing: border-box;
-  display: block;
-  opacity: 0;
+  box-sizing: border-box !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  position: fixed !important;
   transition: opacity 0.3s ease-in-out;
 }
 
@@ -12,12 +23,12 @@
 }
 
 .shinepet-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
 }
 
@@ -63,6 +74,19 @@
   50% { transform: translateY(0) rotate(0) scale(1); }
   75% { transform: translateY(-2px) rotate(10deg) scale(1.06); }
   100% { transform: translateY(0) rotate(0) scale(1); }
+}
+
+/* 走路：左右轻微摆动 */
+.shinepet-walk {
+  animation: shinepet-walk 1.2s ease-in-out infinite;
+}
+
+@keyframes shinepet-walk {
+  0% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(-2px) rotate(-2deg); }
+  50% { transform: translateX(0) rotate(0deg); }
+  75% { transform: translateX(2px) rotate(2deg); }
+  100% { transform: translateX(0) rotate(0deg); }
 }
 
 /* 天气徽标（悬浮在宠物上方） */
