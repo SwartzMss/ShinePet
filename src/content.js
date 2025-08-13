@@ -36,10 +36,20 @@
   // 优先尝试像素人皮肤，不存在则回退到默认 pet.svg
   const primarySkinUrl = chrome.runtime.getURL('assets/mc_person.svg');
   const fallbackUrl = chrome.runtime.getURL('assets/pet.svg');
+  
+  // 添加加载完成处理，防止闪烁
+  petImg.onload = () => {
+    container.classList.add('loaded');
+  };
+  
   petImg.src = primarySkinUrl;
   petImg.onerror = () => {
     if (petImg.src !== fallbackUrl) {
       petImg.src = fallbackUrl;
+      // 确保fallback图片加载完成后也显示
+      petImg.onload = () => {
+        container.classList.add('loaded');
+      };
     }
   };
   petWrapper.appendChild(petImg);
@@ -47,11 +57,12 @@
   container.appendChild(petWrapper);
   document.documentElement.appendChild(container);
 
-  // ===== 足球小游戏 =====
-  let soccerOverlay = null;
-  let soccerCanvas = null;
-  let soccerCtx = null;
-  let soccerState = null;
+  // 添加备用显示逻辑，防止图片加载事件失效
+  setTimeout(() => {
+    if (!container.classList.contains('loaded')) {
+      container.classList.add('loaded');
+    }
+  }, 500);
 
   // 从存储恢复位置
   tryRestorePosition(container);
@@ -103,7 +114,7 @@
   weatherBadge.style.display = 'none';
   petWrapper.appendChild(weatherBadge);
 
-  // 右键：自定义菜单（足球游戏 / 打开设置）
+  // 右键：自定义菜单（打开设置）
   const contextMenu = createContextMenu();
   document.body.appendChild(contextMenu);
   container.addEventListener('contextmenu', (e) => {
@@ -371,20 +382,11 @@
     await chromeStorageSet({ [SETTINGS_STORAGE_KEY]: next });
   }
 
-  // ====== 足球小游戏实现 ======
+  // ====== 右键菜单实现 ======
   function createContextMenu() {
     const menu = document.createElement('div');
     menu.className = 'shinepet-context-menu';
     menu.style.display = 'none';
-
-    const btnSoccer = document.createElement('button');
-    btnSoccer.className = 'shinepet-menu-item';
-    btnSoccer.textContent = '开启足球游戏';
-    btnSoccer.addEventListener('click', () => {
-      hideContextMenu();
-      toggleSoccer();
-      updateSoccerBtn();
-    });
 
     const btnOptions = document.createElement('button');
     btnOptions.className = 'shinepet-menu-item';
@@ -394,14 +396,7 @@
       try { chrome.runtime.openOptionsPage?.(); } catch (_) {}
     });
 
-    menu.appendChild(btnSoccer);
     menu.appendChild(btnOptions);
-
-    function updateSoccerBtn() {
-      const active = !!(soccerOverlay && soccerOverlay.classList.contains('active'));
-      btnSoccer.textContent = active ? '关闭足球游戏' : '开启足球游戏';
-    }
-    menu.updateSoccerBtn = updateSoccerBtn;
     return menu;
   }
 
@@ -409,214 +404,8 @@
     contextMenu.style.left = `${x}px`;
     contextMenu.style.top = `${y}px`;
     contextMenu.style.display = 'flex';
-    contextMenu.updateSoccerBtn?.();
   }
   function hideContextMenu() {
     contextMenu.style.display = 'none';
   }
-  function toggleSoccer() {
-    if (!soccerOverlay) initSoccer();
-    const active = soccerOverlay.classList.toggle('active');
-    if (active) resetSoccer();
-    contextMenu.updateSoccerBtn?.();
-  }
-
-  function initSoccer() {
-    soccerOverlay = document.createElement('div');
-    soccerOverlay.id = 'shinepet-soccer-overlay';
-    soccerCanvas = document.createElement('canvas');
-    soccerCanvas.id = 'shinepet-soccer-canvas';
-    soccerOverlay.appendChild(soccerCanvas);
-
-    const panel = document.createElement('div');
-    panel.className = 'shinepet-soccer-panel';
-    panel.innerHTML = `
-      <div class="shinepet-soccer-row"><strong>足球小游戏</strong></div>
-      <div class="shinepet-soccer-row"><label>球门</label><input id="sp-goal" type="range" min="60" max="300" value="160" /></div>
-      <div class="shinepet-soccer-row"><label>力度</label><input id="sp-power" type="range" min="10" max="100" value="60" /></div>
-      <div class="shinepet-soccer-row"><label>角度</label><input id="sp-angle" type="range" min="10" max="80" value="40" /></div>
-      <div class="shinepet-soccer-actions">
-        <button id="sp-start" class="shinepet-btn primary">开始</button>
-        <button id="sp-reset" class="shinepet-btn">重置</button>
-        <button id="sp-close" class="shinepet-btn">关闭(Alt+S)</button>
-      </div>
-      <div class="shinepet-hint">提示：拖动滑块可预览轨迹；点击“开始”射门。</div>
-    `;
-    soccerOverlay.appendChild(panel);
-
-    document.documentElement.appendChild(soccerOverlay);
-    soccerCtx = soccerCanvas.getContext('2d');
-    window.addEventListener('resize', resizeSoccerCanvas);
-    resizeSoccerCanvas();
-
-    // 控件
-    const el = (id) => panel.querySelector('#' + id);
-    const goalRange = el('sp-goal');
-    const powerRange = el('sp-power');
-    const angleRange = el('sp-angle');
-    const startBtn = el('sp-start');
-    const resetBtn = el('sp-reset');
-    const closeBtn = el('sp-close');
-
-    const updatePreview = () => {
-      if (!soccerState || !soccerState.idle) return;
-      renderSoccer(true);
-    };
-    goalRange.addEventListener('input', updatePreview);
-    powerRange.addEventListener('input', updatePreview);
-    angleRange.addEventListener('input', updatePreview);
-    startBtn.addEventListener('click', shootBall);
-    resetBtn.addEventListener('click', resetSoccer);
-    closeBtn.addEventListener('click', toggleSoccer);
-  }
-
-  function resizeSoccerCanvas() {
-    soccerCanvas.width = window.innerWidth;
-    soccerCanvas.height = window.innerHeight;
-    if (soccerState) renderSoccer(true);
-  }
-
-  function resetSoccer() {
-    const panel = soccerOverlay.querySelector('.shinepet-soccer-panel');
-    const goal = Number(panel.querySelector('#sp-goal').value);
-    soccerState = {
-      idle: true,
-      t: 0,
-      // 球门位于画面右侧中部的矩形开口
-      goalWidth: goal,
-      ball: { x: 120, y: soccerCanvas.height - 80, r: 10 },
-      groundY: soccerCanvas.height - 60,
-      gravity: 980, // px/s^2（计算时会做缩放）
-      vx: 0,
-      vy: 0,
-      path: [],
-    };
-    renderSoccer(true);
-  }
-
-  function shootBall() {
-    if (!soccerState || !soccerState.idle) return;
-    const panel = soccerOverlay.querySelector('.shinepet-soccer-panel');
-    const power = Number(panel.querySelector('#sp-power').value); // 10-100
-    const angleDeg = Number(panel.querySelector('#sp-angle').value); // 10-80
-    const angle = (angleDeg * Math.PI) / 180;
-    const v0 = power * 10; // 初速度缩放
-
-    soccerState.idle = false;
-    soccerState.t = 0;
-    soccerState.vx = v0 * Math.cos(angle);
-    soccerState.vy = -v0 * Math.sin(angle);
-    soccerState.path = [];
-    requestAnimationFrame(stepSoccer);
-  }
-
-  function stepSoccer(ts) {
-    if (!soccerState.prevTs) soccerState.prevTs = ts;
-    const dt = Math.min(0.032, (ts - soccerState.prevTs) / 1000);
-    soccerState.prevTs = ts;
-
-    const s = soccerState;
-    s.t += dt;
-    // 基本抛体：x = v0x * t, y = v0y * t + 0.5 * g * t^2
-    s.ball.x += s.vx * dt;
-    s.ball.y += s.vy * dt + 0.5 * (s.gravity * 0.12) * dt * dt;
-    s.vy += (s.gravity * 0.12) * dt;
-    s.path.push({ x: s.ball.x, y: s.ball.y });
-
-    // 碰地停止
-    if (s.ball.y + s.ball.r >= s.groundY) {
-      s.ball.y = s.groundY - s.ball.r;
-      finishSoccer();
-      return;
-    }
-
-    renderSoccer(false);
-    requestAnimationFrame(stepSoccer);
-  }
-
-  function finishSoccer() {
-    const scored = checkGoal();
-    showToast(scored ? '进球！⚽️' : '没进，再试一次');
-    soccerState.idle = true;
-    renderSoccer(true);
-  }
-
-  function checkGoal() {
-    const s = soccerState;
-    // 球门区域：右侧一段开口
-    const goalW = s.goalWidth;
-    const goalLeft = soccerCanvas.width - goalW - 40;
-    const goalRight = soccerCanvas.width - 40;
-    const goalTop = s.groundY - 120;
-    const goalBottom = s.groundY;
-    const b = s.ball;
-    return b.x + b.r >= goalLeft && b.x - b.r <= goalRight && b.y + b.r >= goalTop && b.y <= goalBottom;
-  }
-
-  function renderSoccer(previewOnly) {
-    const s = soccerState;
-    const ctx = soccerCtx;
-    const w = soccerCanvas.width;
-    const h = soccerCanvas.height;
-    const panel = soccerOverlay.querySelector('.shinepet-soccer-panel');
-    const power = Number(panel.querySelector('#sp-power').value);
-    const angle = Number(panel.querySelector('#sp-angle').value);
-    const goalW = Number(panel.querySelector('#sp-goal').value);
-
-    ctx.clearRect(0, 0, w, h);
-
-    // 背景和地面
-    ctx.fillStyle = '#0b1220';
-    ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = '#064e3b';
-    ctx.fillRect(0, s.groundY, w, h - s.groundY);
-
-    // 球门
-    const goalLeft = w - goalW - 40;
-    ctx.strokeStyle = '#e5e7eb';
-    ctx.lineWidth = 6;
-    ctx.strokeRect(goalLeft, s.groundY - 120, goalW, 120);
-
-    // 轨迹预览（基于当前滑块）
-    if (s.idle) {
-      const angleRad = (angle * Math.PI) / 180;
-      const v0 = power * 10;
-      let x = 120;
-      let y = s.groundY - 80;
-      let vx = v0 * Math.cos(angleRad);
-      let vy = -v0 * Math.sin(angleRad);
-      ctx.strokeStyle = 'rgba(255,255,255,.5)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      for (let i = 0; i < 120; i++) {
-        x += vx * 0.016;
-        y += vy * 0.016 + 0.5 * (s.gravity * 0.12) * 0.016 * 0.016;
-        vy += (s.gravity * 0.12) * 0.016;
-        ctx.lineTo(x, y);
-        if (y >= s.groundY) break;
-      }
-      ctx.stroke();
-    }
-
-    // 真实飞行轨迹
-    if (s.path.length > 1) {
-      ctx.strokeStyle = '#22d3ee';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(s.path[0].x, s.path[0].y);
-      for (let i = 1; i < s.path.length; i++) ctx.lineTo(s.path[i].x, s.path[i].y);
-      ctx.stroke();
-    }
-
-    // 球
-    ctx.fillStyle = '#f9fafb';
-    ctx.beginPath();
-    ctx.arc(s.ball.x, s.ball.y, s.ball.r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#111827';
-    ctx.stroke();
-  }
 })();
-
-
