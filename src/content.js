@@ -22,6 +22,23 @@
 
   console.debug('[ShinePet] Starting initialization...');
 
+  // ===== Chrome 扩展上下文安全辅助 =====
+  function hasExtensionContext() {
+    try {
+      return typeof chrome !== 'undefined' && !!(chrome.runtime && chrome.runtime.id);
+    } catch (_) {
+      return false;
+    }
+  }
+  function safeGetURL(path) {
+    try {
+      if (hasExtensionContext()) {
+        return chrome.runtime.getURL(path);
+      }
+    } catch (_) {}
+    return null;
+  }
+
   // 全局显示状态
   let isPetVisible = true;
 
@@ -65,22 +82,28 @@
       // 多帧动画
       preloadedImages[key] = pathOrPaths.map(path => {
         const img = new Image();
-        img.src = chrome.runtime.getURL(path);
-        console.debug(`[ShinePet] Preloading ${key} frame:`, img.src);
+        const url = safeGetURL(path);
+        if (url) {
+          img.src = url;
+          console.debug(`[ShinePet] Preloading ${key} frame:`, url);
+        }
         return img;
       });
     } else {
       // 单帧动画
       const img = new Image();
-      img.src = chrome.runtime.getURL(pathOrPaths);
+      const url = safeGetURL(pathOrPaths);
+      if (url) {
+        img.src = url;
+      }
       preloadedImages[key] = img;
-      console.debug(`[ShinePet] Preloading ${key} animation:`, img.src);
+      if (img.src) console.debug(`[ShinePet] Preloading ${key} animation:`, img.src);
     }
   });
   
   // 设置初始状态为idle
-  const skinUrl = chrome.runtime.getURL(PET_ANIMATIONS.idle);
-  console.debug('[ShinePet] Loading image from:', skinUrl);
+  const skinUrl = safeGetURL(PET_ANIMATIONS.idle);
+  if (skinUrl) console.debug('[ShinePet] Loading image from:', skinUrl);
   
   // 简化的加载处理
   petImg.onload = () => {
@@ -91,7 +114,9 @@
     console.error('[ShinePet] Image load failed');
   };
   
-  petImg.src = skinUrl;
+  if (skinUrl) {
+    petImg.src = skinUrl;
+  }
 
   // 动画切换函数
   let currentWaveFrame = 0;
@@ -110,8 +135,11 @@
       }
     } else {
       // 单帧动画
-      petImg.src = chrome.runtime.getURL(animationData);
-      console.debug(`[ShinePet] Switched to ${animationType} animation`);
+      const url = safeGetURL(animationData);
+      if (url) {
+        petImg.src = url;
+        console.debug(`[ShinePet] Switched to ${animationType} animation`);
+      }
     }
   }
   
@@ -120,9 +148,13 @@
     currentWaveFrame = 0;
     
     function nextFrame() {
+      if (!hasExtensionContext()) return;
       if (currentWaveFrame < waveFrames.length) {
-        petImg.src = chrome.runtime.getURL(waveFrames[currentWaveFrame]);
-        console.debug(`[ShinePet] Wave frame ${currentWaveFrame + 1}/${waveFrames.length}`);
+        const url = safeGetURL(waveFrames[currentWaveFrame]);
+        if (url) {
+          petImg.src = url;
+          console.debug(`[ShinePet] Wave frame ${currentWaveFrame + 1}/${waveFrames.length}`);
+        }
         currentWaveFrame++;
         
         // 每帧持续500ms
@@ -131,7 +163,8 @@
         } else {
           // 动画完成，最后一帧停留500ms后返回静止
           waveFrameTimer = setTimeout(() => {
-            petImg.src = chrome.runtime.getURL(PET_ANIMATIONS.idle);
+            const backUrl = safeGetURL(PET_ANIMATIONS.idle);
+            if (backUrl) petImg.src = backUrl;
             waveFrameTimer = null;
           }, 500);
         }
@@ -898,7 +931,15 @@
     btnOptions.addEventListener('click', () => {
       hideContextMenu();
       // 发送消息给background script打开设置页面
-      chrome.runtime.sendMessage({ action: 'openOptions' });
+      try {
+        if (hasExtensionContext()) {
+          chrome.runtime.sendMessage({ action: 'openOptions' });
+        } else {
+          showToast('扩展已重载，请刷新页面');
+        }
+      } catch (_) {
+        showToast('扩展已重载，请刷新页面');
+      }
     });
 
     menu.appendChild(btnOptions);
@@ -981,7 +1022,8 @@
   }
 
   // 监听来自background script的消息
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (hasExtensionContext()) {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log('[ShinePet] Received message:', message);
     
     try {
@@ -997,6 +1039,7 @@
     }
     
     return false; // 对于其他消息，不保持通道开放
-  });
+    });
+  }
 
 })();
